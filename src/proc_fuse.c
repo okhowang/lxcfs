@@ -1059,7 +1059,7 @@ static int proc_stat_read(char *buf, size_t size, off_t offset,
 		if (cgroup_ops->can_use_cpuview(cgroup_ops) && opts && opts->use_cfs) {
 			total_len = cpuview_proc_stat(cg, cpu_cg, cpuset, cg_cpu_usage,
 						      cg_cpu_usage_size, f,
-						      d->buf, d->buflen);
+						      d->buf, d->buflen, lxcfs_has_opt(opts, LXCFS_RECURSIVE));
 			goto out;
 		}
 	} else {
@@ -1071,7 +1071,7 @@ static int proc_stat_read(char *buf, size_t size, off_t offset,
 	else
 		use_view = false;
 	if (use_view)
-		max_cpus = max_cpu_count(cg, cpu_cg);
+		max_cpus = max_cpu_count(cg, cpu_cg, lxcfs_has_opt(opts, LXCFS_RECURSIVE));
 
 	while (getline(&line, &linelen, f) != -1) {
 		ssize_t l;

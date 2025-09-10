@@ -108,6 +108,7 @@ struct lxcfs_opts {
 	bool swap_off;
 	bool use_pidfd;
 	bool use_cfs;
+	bool recursive;
 	/*
 	 * Ideally we'd version by size but because of backwards compatability
 	 * and the use of bool instead of explicited __u32 and __u64 we can't.
@@ -121,7 +122,8 @@ typedef enum lxcfs_opt_t {
 	LXCFS_SWAP_ON	= 0,
 	LXCFS_PIDFD_ON	= 1,
 	LXCFS_CFS_ON	= 2,
-	LXCFS_OPTS_MAX	= LXCFS_CFS_ON,
+	LXCFS_RECURSIVE	= 3,
+	LXCFS_OPTS_MAX	= LXCFS_RECURSIVE,
 } lxcfs_opt_t;
 
 
@@ -152,6 +154,8 @@ static inline bool lxcfs_has_opt(struct lxcfs_opts *opts, lxcfs_opt_t opt)
 		return opts->use_pidfd;
 	case LXCFS_CFS_ON:
 		return opts->use_cfs;
+	case LXCFS_RECURSIVE:
+		return opts->recursive;
 	}
 
 	return false;
