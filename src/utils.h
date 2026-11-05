@@ -19,7 +19,9 @@
 #include "syscall_numbers.h"
 
 /* Reserve buffer size to account for file size changes. */
+#ifndef BUF_RESERVE_SIZE
 #define BUF_RESERVE_SIZE 512
+#endif
 
 #define SEND_CREDS_OK 0
 #define SEND_CREDS_NOTSK 1
@@ -40,6 +42,7 @@ extern int read_file_fuse(const char *path, char *buf, size_t size,
 			  struct file_info *d);
 extern int read_file_fuse_with_offset(const char *path, char *buf, size_t size,
 				      off_t offset, struct file_info *d);
+extern bool try_realloc_proc_buf(struct file_info *d, const char *path);
 extern void prune_init_slice(char *cg);
 extern int wait_for_pid(pid_t pid);
 

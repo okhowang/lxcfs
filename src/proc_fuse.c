@@ -589,8 +589,8 @@ static int proc_diskstats_read(char *buf, size_t size, off_t offset,
 	/* helper fields */
 	uint64_t read_service_time, write_service_time, discard_service_time, read_wait_time,
 	    write_wait_time, discard_wait_time;
-	char *cache = d->buf;
-	size_t cache_size = d->buflen;
+	char *cache;
+	size_t cache_size;
 	size_t linelen = 0, total_len = 0;
 	int i = 0;
 	int ret;
@@ -606,10 +606,16 @@ static int proc_diskstats_read(char *buf, size_t size, off_t offset,
 
 		left = d->size - offset;
 		total_len = left > size ? size: left;
-		memcpy(buf, cache + offset, total_len);
+		memcpy(buf, d->buf + offset, total_len);
 
 		return total_len;
 	}
+
+	/* Realloc if /proc/diskstats has grown since open(). */
+	if (!try_realloc_proc_buf(d, "/proc/diskstats"))
+		return -ENOMEM;
+	cache = d->buf;
+	cache_size = d->buflen;
 
 	pid_t initpid = lookup_initpid_in_store(fc->pid);
 	if (initpid <= 1 || is_shared_pidns(initpid))
@@ -991,8 +997,8 @@ static int proc_stat_read(char *buf, size_t size, off_t offset,
 		 guest_sum = 0, guest_nice_sum = 0;
 	char cpuall[CPUALL_MAX_SIZE];
 	/* reserve for cpu all */
-	char *cache = d->buf + CPUALL_MAX_SIZE;
-	size_t cache_size = d->buflen - CPUALL_MAX_SIZE;
+	char *cache;
+	size_t cache_size;
 	int cg_cpu_usage_size = 0;
 	bool use_view;
 	int max_cpus = 0;
@@ -1012,6 +1018,12 @@ static int proc_stat_read(char *buf, size_t size, off_t offset,
 
 		return total_len;
 	}
+
+	/* Realloc if /proc/stat has grown since open(). */
+	if (!try_realloc_proc_buf(d, "/proc/stat"))
+		return -ENOMEM;
+	cache = d->buf + CPUALL_MAX_SIZE;
+	cache_size = d->buflen - CPUALL_MAX_SIZE;
 
 	pid_t initpid = lookup_initpid_in_store(fc->pid);
 	if (initpid <= 1 || is_shared_pidns(initpid))
@@ -1330,8 +1342,8 @@ static int proc_meminfo_read(char *buf, size_t size, off_t offset,
 		 memswpriority = 1;
 	struct memory_stat mstat = {};
 	size_t linelen = 0, total_len = 0;
-	char *cache = d->buf;
-	size_t cache_size = d->buflen;
+	char *cache;
+	size_t cache_size;
 	int ret;
 
 	if (offset) {
@@ -1345,10 +1357,16 @@ static int proc_meminfo_read(char *buf, size_t size, off_t offset,
 
 		left = d->size - offset;
 		total_len = left > size ? size : left;
-		memcpy(buf, cache + offset, total_len);
+		memcpy(buf, d->buf + offset, total_len);
 
 		return total_len;
 	}
+
+	/* Realloc if /proc/meminfo has grown since open(). */
+	if (!try_realloc_proc_buf(d, "/proc/meminfo"))
+		return -ENOMEM;
+	cache = d->buf;
+	cache_size = d->buflen;
 
 	pid_t initpid = lookup_initpid_in_store(fc->pid);
 	if (initpid <= 1 || is_shared_pidns(initpid))
@@ -1557,8 +1575,8 @@ static int proc_slabinfo_read(char *buf, size_t size, off_t offset,
 	struct fuse_context *fc = fuse_get_context();
 	struct file_info *d = INTTYPE_TO_PTR(fi->fh);
 	size_t linelen = 0, total_len = 0;
-	char *cache = d->buf;
-	size_t cache_size = d->buflen;
+	char *cache;
+	size_t cache_size;
 	pid_t initpid;
 
 	if (offset) {
@@ -1572,10 +1590,16 @@ static int proc_slabinfo_read(char *buf, size_t size, off_t offset,
 
 		left = d->size - offset;
 		total_len = left > size ? size : left;
-		memcpy(buf, cache + offset, total_len);
+		memcpy(buf, d->buf + offset, total_len);
 
 		return total_len;
 	}
+
+	/* Realloc if /proc/slabinfo has grown since open(). */
+	if (!try_realloc_proc_buf(d, "/proc/slabinfo"))
+		return -ENOMEM;
+	cache = d->buf;
+	cache_size = d->buflen;
 
 	initpid = lookup_initpid_in_store(fc->pid);
 	if (initpid <= 1 || is_shared_pidns(initpid))
